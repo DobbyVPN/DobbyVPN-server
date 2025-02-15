@@ -1,7 +1,8 @@
 import os
 import unittest
 import tempfile
-from amneziawg_management import add_command_logic, del_command_logic, list_command_logic
+
+from main import *
 
 class TestStringMethods(unittest.TestCase):
     def test_list_logic(self):

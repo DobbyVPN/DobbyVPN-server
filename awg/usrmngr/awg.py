@@ -1,14 +1,10 @@
 import re
 import json
-import base64
-import codecs
 
-from python_wireguard import Key
 from urllib.request import urlopen
-from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
-from cryptography.hazmat.primitives import serialization
-
 from typing import List, Optional
+
+from util import *
 
 
 SERVER_CONFIG_PATTERN = """[Peer]
@@ -80,20 +76,17 @@ class InterfaceConfig:
 		private_key = re.search(r"PrivateKey = (\S+)", value)
 
 		if private_key is None:
-			public_key = None
+			private_key_string = None
+			public_key_string = None
 		else:
 			try:
-				private_key_value = private_key.group(1)
-				private_key_data = base64.b64decode(private_key_value)
-				private_key_x25519 = X25519PrivateKey.from_private_bytes(private_key_data)
-				public_key_x25519 = private_key_x25519 \
-					.public_key() \
-					.public_bytes(
-						encoding=serialization.Encoding.Raw,
-						format=serialization.PublicFormat.Raw)
-				public_key = codecs.encode(public_key_x25519, 'base64').decode('utf8').strip()
-			except Exception:
-				public_key = None
+				private_key_string = private_key.group(1)
+				private_key_x25519 = string_to_private_key(private_key_string)
+				public_key_x25519  = private_key_x25519.public_key()
+				public_key_string = public_key_to_string(public_key_x25519)
+			except Exception as ex:
+				private_key_string = None
+				public_key_string = None
 
 		url = 'http://ipinfo.io/json'
 		response = urlopen(url)
@@ -114,8 +107,8 @@ class InterfaceConfig:
 
 		return InterfaceConfig(
 			value=value,
-			private_key=None if private_key is None else private_key.group(1),
-			public_key=public_key,
+			private_key=private_key_string,
+			public_key=public_key_string,
 			hostname=hostname,
 			address="10.9.9.1/32" if address is None else address.group(1),
 			listen_port="51280" if listen_port is None else listen_port.group(1),
@@ -228,9 +221,12 @@ class AmneziaWGConfig:
 				x += 1
 
 	def add_key(self, user_name: str) -> PeerConfig:
-		private, public = Key.key_pair()
+		private_key_x25519, public_key_x25519 = generate_keypair()
+		private_key_string = private_key_to_string(private_key_x25519)
+		public_key_string = public_key_to_string(public_key_x25519)
+
 		address = self.free_address()
-		new_peer_config = PeerConfig(user_name, str(private), str(public), address)
+		new_peer_config = PeerConfig(user_name, private_key_string, public_key_string, address)
 		self.peers.append(new_peer_config)
 
 		return new_peer_config

@@ -1,0 +1,14 @@
+# docker images build generated files
+amneziawg-go/
+
+# setup.sh generated files
+caddy/data/
+caddy/config/
+logs.txt
+.env
+
+# awg/ folder generated files
+awg/wg0.conf
+awg/awg.log
+awg/.venv/
+awg/usrmngr/__pycache__/

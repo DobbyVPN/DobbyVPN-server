@@ -17,7 +17,8 @@ RUN apk --no-cache add iproute2 iptables bash && \
 COPY --from=awg /usr/bin/amneziawg-go /usr/bin/amneziawg-go
 
 #Install required packages
-RUN apk add --no-cache bash curl dumb-init
+RUN apk add --no-cache bash curl dumb-init \
+    python3 python3-dev py3-pip
 RUN apk --update upgrade --no-cache
 
 RUN mkdir -p /etc/amnezia/amneziawg

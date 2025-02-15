@@ -49,84 +49,9 @@ EOF
 }
 
 function awg_config {
-    touch awg/wg0.conf
-
-    # Pointing boundaries 
-    umask 077
-    private_key=$(wg genkey)
     listen_port=$(shuf -i 1025-32875 -n 1)
-    Jc_min=1
-    Jc_max=128
-    Jmin_recommended=50
-    Jmax_max=1280
-    S1_max=1279
-    S2_max=1279
-    H_min=5
-    H_max=2147483647
 
-    Jc=$((RANDOM % (Jc_max - Jc_min + 1) + Jc_min))
-    Jmin=$Jmin_recommended
-    Jmax=$((RANDOM % (Jmax_max - Jmin + 1) + Jmin))
-
-# S1 and S2 are unique, with condition S1 + 56 ≠ S2
-while true; do
-    S1=$((RANDOM % (S1_max - 15 + 1) + 15))
-    S2=$((RANDOM % (S2_max - 15 + 1) + 15))
-    if [ $((S1 + 56)) -ne $S2 ]; then
-      break
-    fi
-done
-
-# H1, H2, H3, H4 are unique between each other
-while true; do
-    H1=$((RANDOM % (H_max - H_min + 1) + H_min))
-    H2=$((RANDOM % (H_max - H_min + 1) + H_min))
-    H3=$((RANDOM % (H_max - H_min + 1) + H_min))
-    H4=$((RANDOM % (H_max - H_min + 1) + H_min))
-    if [ $H1 -ne $H2 ] && [ $H1 -ne $H3 ] && [ $H1 -ne $H4 ] && \
-       [ $H2 -ne $H3 ] && [ $H2 -ne $H4 ] && [ $H3 -ne $H4 ]; then
-      break
-    fi
-done
-
-cat <<EOF > awg/wg0.conf
-[Interface]
-PrivateKey = $private_key
-ListenPort = $listen_port
-Address = 10.9.9.1/32
-
-Jc = $Jc
-Jmin = $Jmin
-Jmax = $Jmax
-S1 = $S1
-S2 = $S2
-H1 = $H1
-H2 = $H2
-H3 = $H3
-H4 = $H4
-
-PostUp = iptables -A FORWARD -i wg0 -j ACCEPT
-PostUp = iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-PostDown = iptables -D FORWARD -i wg0 -j ACCEPT
-PostDown = iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
-EOF
-
-
-cat << EOF > ".env"
-AWG_LISTEN_PORT=${listen_port}
-ListenPort=${listen_port}
-PrivateKey=${private_key}
-Jc=${Jc}
-Jmin=${Jmin}
-Jmax=${Jmax}
-S1=${S1}
-S2=${S2}
-H1=${H1}
-H2=${H2}
-H3=${H3}
-H4=${H4}
-EOF
-
+    echo "AWG_LISTEN_PORT=${listen_port}" > ".env"
 }
 
 # Start main flow

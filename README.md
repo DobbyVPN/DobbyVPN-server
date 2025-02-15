@@ -1,10 +1,14 @@
-Setup:
+# Dobby VPN server
+
+## Setup:
 
 ```bash
 git clone https://github.com/DobbyVPN/DobbyVPN-server.git
 cd DobbyVPN-server
 ./setup.sh
 ```
+
+## Cloak
 
 <details>
 <summary>Cloak client config</summary>
@@ -31,7 +35,48 @@ cd DobbyVPN-server
 
 </details>
 
-AWG
+## AWG
+
+### VPN docker image local build
+
+```bash
+git clone https://github.com/amnezia-vpn/amneziawg-go
+cd amneziawg-go
+rm Dockerfile
+cp ../docker/Dockerfile-awg-server Dockerfile
+docker build --no-cache -f Dockerfile -t awg-server:latest .
+cd ../
+```
+
+It builds local `awg-server` image, that can be used in the [docker-compose.yaml](./docker-compose.yaml) file, for example.
+
+### VPN management
+
+#### List keys:
+
+```bash
+docker exec awg-server .venv/bin/python3 usrmngr/main.py list
+```
+
+#### Add key to user:
+
+```bash
+docker exec awg-server .venv/bin/python3 usrmngr/main.py list add <User>
+```
+
+#### Delete user keys:
+
+```bash
+docker exec awg-server .venv/bin/python3 usrmngr/main.py list del <User>
+```
+
+#### Get server log:
+
+```bash
+docker exec awg-server cat awg.log
+```
+
+### Config modifications:
 
 Adding user to AWG (in file `awg/wg0.conf`, only 3 lines per user):
 
